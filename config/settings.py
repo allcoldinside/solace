@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     app_name: str = "SOLACE"
-    secret_key: str = Field(..., min_length=32)
+    secret_key: str = Field("change-this-secret-key-at-runtime-123", min_length=32)
     postgres_url: str = "postgresql+asyncpg://solace:solace@localhost:5432/solace"
     mongodb_url: str = "mongodb://localhost:27017"
     neo4j_url: str = "bolt://neo4j:7687"
@@ -57,6 +57,31 @@ class Settings(BaseSettings):
     censys_api_id: str = ""
     censys_api_secret: str = ""
     opencorporates_api_key: str = ""
+    # Enterprise spider keys
+    etherscan_api_key: str = ""
+    github_token: str = ""
+    tineye_api_key: str = ""
+    flickr_api_key: str = ""
+    alpha_vantage_key: str = ""
+    uk_companies_house_key: str = ""
+    securitytrails_api_key: str = ""
+    ipinfo_token: str = ""
+    intelx_api_key: str = ""
+    aishub_username: str = ""
+    opensky_username: str = ""
+    opensky_password: str = ""
+    flightaware_api_key: str = ""
+    hibp_api_key: str = ""
+    dehashed_api_key: str = ""
+    dehashed_email: str = ""
+    leakcheck_key: str = ""
+    serpapi_key: str = ""
+    misp_url: str = "http://misp"
+    misp_api_key: str = ""
+    slack_bot_token: str = ""
+    slack_app_token: str = ""
+    slack_alerts_channel_id: str = ""
+    ollama_default_model: str = "llama3.1"
     max_panel_rounds: int = 6
     loop_detection_threshold: float = 0.65
     default_classification: str = "TLP:WHITE"

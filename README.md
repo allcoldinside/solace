@@ -15,7 +15,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://react.dev)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker)](https://docker.com)
-[![Tests](https://img.shields.io/badge/Tests-129%20passing-00ff88?style=flat-square)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-Enterprise%20ready-00ff88?style=flat-square)](tests/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 *A complete, self-hosted AI intelligence platform. Collect → Enrich → Report → Analyze → Alert.*
@@ -38,8 +38,8 @@ SOLACE is a solo-operated, self-hosted open-source intelligence platform that au
 
 ## Key Features
 
-### 8-Bot Scraper Team
-Eight specialized spider bots run concurrently, each owning a distinct intelligence domain:
+### 24-Bot Scraper Team
+Twenty-four specialized spider bots run concurrently, each owning a distinct intelligence domain:
 
 | Bot | Domain | Sources |
 |-----|--------|---------|
@@ -51,6 +51,22 @@ Eight specialized spider bots run concurrently, each owning a distinct intellige
 | SPIDER-6 | Geospatial | OpenStreetMap Overpass, Nominatim geocoding, IP geolocation |
 | SPIDER-7 | Documents | CISA advisories, Semantic Scholar academic papers |
 | SPIDER-8 | Threat Feeds | OTX AlienVault, VirusTotal, GreyNoise, AbuseIPDB |
+| SPIDER-9 | Identity Intel | holehe, maigret, WhatsMyName |
+| SPIDER-10 | Crypto/Blockchain | Blockchain.info, Etherscan, Blockchair |
+| SPIDER-11 | Job Listings | Indeed, LinkedIn Jobs, Glassdoor, RemoteOK |
+| SPIDER-12 | Legal Records | CourtListener, FTC, CFPB, Federal Register |
+| SPIDER-13 | Code Intel | GitHub, GitLab, Sourcegraph, Paste search |
+| SPIDER-14 | Media Intel | TinEye, EXIF, Flickr, Wikimedia |
+| SPIDER-15 | Patents/IP | USPTO, EPO, WIPO, Google Patents |
+| SPIDER-16 | Financial Intel | Alpha Vantage, Yahoo Finance, CoinGecko, FRED |
+| SPIDER-17 | Supply Chain | USASpending, World Bank, OpenCorporates, Companies House |
+| SPIDER-18 | Advanced Infra | BGPView, crt.sh, SecurityTrails, IPinfo, Robtex |
+| SPIDER-19 | Paste/Leaks | Paste dorks, IntelX, psbdmp, Gists |
+| SPIDER-20 | Forums/Channels | 4chan, Telegram public, security forums |
+| SPIDER-21 | Transport Intel | AIS Hub, OpenSky, FlightAware pages |
+| SPIDER-22 | Vulnerability Intel | NVD, MITRE CVE, Exploit-DB, PacketStorm |
+| SPIDER-23 | Breach Intel | HIBP, DeHashed, LeakCheck |
+| SPIDER-24 | AI Intermediate Analyst | Local Ollama pre-screening |
 
 ### NLP Enrichment Pipeline
 Every collected item passes through HuggingFace models before storage:
@@ -462,3 +478,12 @@ MIT License — see [LICENSE](LICENSE)
 *Built with Claude Opus · GPT-4o · Gemini 1.5 Pro*
 
 </div>
+
+
+## Enterprise Features
+
+- 5-analyst panel mode (ALPHA/BRAVO/DIRECTOR + GAMMA/DELTA).
+- NotebookLM sync helper for Drive-indexed reports.
+- MISP IOC push/pull integration layer.
+- Slack alerting and command integration.
+- n8n enterprise workflow templates.

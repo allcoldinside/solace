@@ -1,0 +1,1 @@
+{"name":"daily_monitor","nodes":[{"name":"Schedule"},{"name":"POST /api/collections"},{"name":"Wait 15min"},{"name":"GET report"},{"name":"POST /api/panel"},{"name":"Send digest"}]}

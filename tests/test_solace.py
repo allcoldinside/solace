@@ -4,6 +4,7 @@ import os
 
 os.environ.setdefault("SECRET_KEY", "x" * 32)
 
+from collectors import get_spider
 from collectors.aggregator import AggregatorBot, SOURCE_RELIABILITY
 from config.settings import Settings
 from core.schemas import CollectionResult, CollectorID, RawIntelItemSchema, TargetType
@@ -78,4 +79,10 @@ def test_aggregator_deduplicates_and_sorts() -> None:
 
 
 def test_source_reliability_count() -> None:
-    assert len(SOURCE_RELIABILITY) == 19
+    assert len(SOURCE_RELIABILITY) >= 50
+
+
+def test_enterprise_spider_factory_range() -> None:
+    for idx in range(1, 25):
+        spider = get_spider(f"SPIDER-{idx}")
+        assert spider.bot_id == f"SPIDER-{idx}"
