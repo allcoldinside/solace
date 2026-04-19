@@ -40,6 +40,10 @@ class TestSettings:
         assert settings.celery_broker_url == settings.redis_url
         assert settings.celery_result_backend == settings.redis_url
 
+    def test_uppercase_env_aliases_are_supported(self) -> None:
+        settings = Settings(POSTGRES_URL="postgresql+asyncpg://u:p@localhost:5432/custom")
+        assert settings.postgres_url.endswith("/custom")
+
 
 class TestReportSchema:
     """Report schema tests."""

@@ -1,6 +1,7 @@
 """Application settings for SOLACE."""
 
 from pathlib import Path
+import secrets
 
 from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -14,16 +15,20 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,
+        populate_by_name=True,
     )
 
     app_name: str = "SOLACE"
-    secret_key: str = Field(..., min_length=32)
-    postgres_url: str = "postgresql+asyncpg://solace:solace@localhost:5432/solace"
-    mongodb_url: str = "mongodb://localhost:27017"
+    secret_key: str = Field(default_factory=lambda: secrets.token_hex(32), min_length=32)
+    postgres_url: str = Field(
+        default="postgresql+asyncpg://solace:solace@localhost:5432/solace",
+        alias="POSTGRES_URL",
+    )
+    mongodb_url: str = Field(default="mongodb://localhost:27017", alias="MONGODB_URL")
     neo4j_url: str = "bolt://neo4j:7687"
     neo4j_user: str = "neo4j"
     neo4j_password: str = "neo4j"
-    redis_url: str = "redis://localhost:6379/0"
+    redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
     clickhouse_host: str = "clickhouse"
     clickhouse_port: int = 9000
     clickhouse_db: str = "solace"

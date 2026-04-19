@@ -1,15 +1,22 @@
 # SOLACE (Foundation)
 
-This repository now contains a stronger SOLACE foundation with:
+This repository contains the resolved SOLACE foundation after reconciling branch differences for:
+
+- `README.md`
+- `config/settings.py`
+- `core/schemas.py`
+- `tests/test_solace.py`
+
+## Included foundation modules
 
 - environment + secret loading (`config/settings.py`)
 - structured JSON logging (`config/logging.py`)
-- core enums/schemas (`core/schemas.py`)
+- core enums and schemas (`core/schemas.py`)
 - base async collector primitives (`collectors/base_collector.py`)
-- collector aggregation logic (`collectors/aggregator.py`)
-- report ID + markdown schema helpers (`reports/schema.py`)
+- collection aggregation logic (`collectors/aggregator.py`)
+- report ID and markdown schema helpers (`reports/schema.py`)
 - panel prompts, loop detection, and session state (`panel/`)
-- expanded baseline tests (`tests/test_solace.py`)
+- baseline test suite (`tests/test_solace.py`)
 
 ## Quickstart
 

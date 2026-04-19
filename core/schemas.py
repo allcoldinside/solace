@@ -79,7 +79,7 @@ class RawIntelItemSchema(BaseModel):
     target: str
     target_type: TargetType
     collected_at: datetime = Field(default_factory=datetime.utcnow)
-    reliability_score: float = 0.5
+    reliability_score: float = Field(default=0.5, ge=0.0, le=1.0)
     metadata_: dict[str, str] = Field(default_factory=dict)
 
 
@@ -108,3 +108,17 @@ class Disagreement(BaseModel):
     topic: str
     alpha_position: str
     bravo_position: str
+
+
+__all__ = [
+    "TargetType",
+    "Classification",
+    "ConfidenceLevel",
+    "CollectorID",
+    "AnalystID",
+    "PanelStatus",
+    "RawIntelItemSchema",
+    "CollectionResult",
+    "PanelTurn",
+    "Disagreement",
+]
