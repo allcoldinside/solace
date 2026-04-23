@@ -1,0 +1,1 @@
+{"name":"threat_feed_digest","nodes":[{"name":"Daily trigger"},{"name":"Collect HIGH threat reports"},{"name":"Combine"},{"name":"Send summary"}]}
