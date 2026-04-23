@@ -64,6 +64,24 @@ class CollectorID(str, Enum):
     REPORT_WRITER = "REPORT-WRITER"
 
 
+class AnalystID(str, Enum):
+    """Analyst identifiers used by panel sessions."""
+
+    CLAUDE = "ANALYST-ALPHA"
+    CHATGPT = "ANALYST-BRAVO"
+    GEMINI = "SESSION-DIRECTOR"
+
+
+class PanelStatus(str, Enum):
+    """Panel orchestration status values."""
+
+    ACTIVE = "ACTIVE"
+    REDIRECTING = "REDIRECTING"
+    LOOP_BREAK = "LOOP-BREAK"
+    CONCLUDING = "CONCLUDING"
+    COMPLETE = "COMPLETE"
+
+
 class RawIntelItemSchema(BaseModel):
     """Raw normalized intelligence item."""
 
@@ -77,6 +95,7 @@ class RawIntelItemSchema(BaseModel):
     target: str
     target_type: TargetType
     collected_at: datetime = Field(default_factory=datetime.utcnow)
+    reliability_score: float = Field(default=0.5, ge=0.0, le=1.0)
     reliability_score: float = 0.5
     metadata_: dict[str, str] = Field(default_factory=dict)
 
@@ -87,3 +106,36 @@ class CollectionResult(BaseModel):
     collector_id: CollectorID
     items: list[RawIntelItemSchema] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)
+
+
+class PanelTurn(BaseModel):
+    """Single panel transcript turn."""
+
+    analyst: AnalystID
+    content: str
+    round_number: int
+    is_loop_flagged: bool = False
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+
+class Disagreement(BaseModel):
+    """Panel disagreement event."""
+
+    round_number: int
+    topic: str
+    alpha_position: str
+    bravo_position: str
+
+
+__all__ = [
+    "TargetType",
+    "Classification",
+    "ConfidenceLevel",
+    "CollectorID",
+    "AnalystID",
+    "PanelStatus",
+    "RawIntelItemSchema",
+    "CollectionResult",
+    "PanelTurn",
+    "Disagreement",
+]
