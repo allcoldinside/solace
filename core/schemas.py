@@ -44,6 +44,22 @@ class CollectorID(str, Enum):
     SPIDER_6 = "SPIDER-6"
     SPIDER_7 = "SPIDER-7"
     SPIDER_8 = "SPIDER-8"
+    SPIDER_9 = "SPIDER-9"
+    SPIDER_10 = "SPIDER-10"
+    SPIDER_11 = "SPIDER-11"
+    SPIDER_12 = "SPIDER-12"
+    SPIDER_13 = "SPIDER-13"
+    SPIDER_14 = "SPIDER-14"
+    SPIDER_15 = "SPIDER-15"
+    SPIDER_16 = "SPIDER-16"
+    SPIDER_17 = "SPIDER-17"
+    SPIDER_18 = "SPIDER-18"
+    SPIDER_19 = "SPIDER-19"
+    SPIDER_20 = "SPIDER-20"
+    SPIDER_21 = "SPIDER-21"
+    SPIDER_22 = "SPIDER-22"
+    SPIDER_23 = "SPIDER-23"
+    SPIDER_24 = "SPIDER-24"
     AGGREGATOR = "AGGREGATOR"
     REPORT_WRITER = "REPORT-WRITER"
 
@@ -80,6 +96,7 @@ class RawIntelItemSchema(BaseModel):
     target_type: TargetType
     collected_at: datetime = Field(default_factory=datetime.utcnow)
     reliability_score: float = Field(default=0.5, ge=0.0, le=1.0)
+    reliability_score: float = 0.5
     metadata_: dict[str, str] = Field(default_factory=dict)
 
 

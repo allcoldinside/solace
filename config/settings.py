@@ -4,6 +4,8 @@ from pathlib import Path
 import secrets
 
 from pydantic import Field, ValidationInfo, field_validator
+
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -29,6 +31,22 @@ class Settings(BaseSettings):
     neo4j_user: str = "neo4j"
     neo4j_password: str = "neo4j"
     redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
+    """Runtime settings loaded from environment variables.
+
+    Attributes:
+        secret_key: Cryptographic secret for auth and signing.
+    """
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    app_name: str = "SOLACE"
+    secret_key: str = Field("change-this-secret-key-at-runtime-123", min_length=32)
+    postgres_url: str = "postgresql+asyncpg://solace:solace@localhost:5432/solace"
+    mongodb_url: str = "mongodb://localhost:27017"
+    neo4j_url: str = "bolt://neo4j:7687"
+    neo4j_user: str = "neo4j"
+    neo4j_password: str = "neo4j"
+    redis_url: str = "redis://localhost:6379/0"
     clickhouse_host: str = "clickhouse"
     clickhouse_port: int = 9000
     clickhouse_db: str = "solace"
@@ -63,6 +81,31 @@ class Settings(BaseSettings):
     censys_api_id: str = ""
     censys_api_secret: str = ""
     opencorporates_api_key: str = ""
+    # Enterprise spider keys
+    etherscan_api_key: str = ""
+    github_token: str = ""
+    tineye_api_key: str = ""
+    flickr_api_key: str = ""
+    alpha_vantage_key: str = ""
+    uk_companies_house_key: str = ""
+    securitytrails_api_key: str = ""
+    ipinfo_token: str = ""
+    intelx_api_key: str = ""
+    aishub_username: str = ""
+    opensky_username: str = ""
+    opensky_password: str = ""
+    flightaware_api_key: str = ""
+    hibp_api_key: str = ""
+    dehashed_api_key: str = ""
+    dehashed_email: str = ""
+    leakcheck_key: str = ""
+    serpapi_key: str = ""
+    misp_url: str = "http://misp"
+    misp_api_key: str = ""
+    slack_bot_token: str = ""
+    slack_app_token: str = ""
+    slack_alerts_channel_id: str = ""
+    ollama_default_model: str = "llama3.1"
     max_panel_rounds: int = 6
     loop_detection_threshold: float = 0.65
     default_classification: str = "TLP:WHITE"
@@ -78,6 +121,20 @@ class Settings(BaseSettings):
         if isinstance(value, str) and value:
             return value
         redis_url = str(info.data.get("redis_url", "redis://localhost:6379/0"))
+    def default_celery_to_redis(cls, value: str, info: object) -> str:
+        """Defaults celery endpoints to Redis URL when omitted.
+
+        Args:
+            value: Raw value from environment.
+            info: Validation context from Pydantic.
+
+        Returns:
+            The explicit value if set, otherwise Redis URL.
+        """
+        if isinstance(value, str) and value:
+            return value
+        data = getattr(info, "data", {})
+        redis_url = data.get("redis_url", "redis://localhost:6379/0")
         return redis_url
 
 
