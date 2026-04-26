@@ -1,0 +1,2 @@
+class SolaceError(Exception):
+    pass
