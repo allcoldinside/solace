@@ -1,25 +1,42 @@
 """Authentication routes."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.database import get_db
+from core.schemas import FullTokenResponse, LoginRequest, RegisterRequest
+from security.auth import create_access_token, create_refresh_token
+from security.deps import current_user
+from storage.tenant_store import TenantStore
+from storage.user_store import UserStore
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-@router.post("/register")
-async def register() -> dict:
-    return {"message": "registration endpoint ready"}
 
-@router.post("/login")
-async def login() -> dict:
-    return {"message": "login endpoint ready"}
+def build_tokens(user) -> FullTokenResponse:
+    access, _, _ = create_access_token(user.user_id, user.tenant_id, user.role)
+    refresh, _, _ = create_refresh_token(user.user_id, user.tenant_id, user.role)
+    return FullTokenResponse(access_token=access, refresh_token=refresh, expires_in=1800)
 
-@router.post("/refresh")
-async def refresh() -> dict:
-    return {"message": "refresh endpoint ready"}
+
+@router.post("/register", response_model=FullTokenResponse)
+async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db)) -> FullTokenResponse:
+    store = UserStore(db)
+    if await store.get_by_email(payload.email):
+        raise HTTPException(status_code=409, detail="email already registered")
+    await TenantStore(db).get_or_create(payload.tenant_id)
+    user = await store.create(payload.email, payload.password, payload.tenant_id, payload.role)
+    return build_tokens(user)
+
+
+@router.post("/login", response_model=FullTokenResponse)
+async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)) -> FullTokenResponse:
+    user = await UserStore(db).authenticate(payload.email, payload.password)
+    if user is None:
+        raise HTTPException(status_code=401, detail="invalid credentials")
+    return build_tokens(user)
+
 
 @router.get("/me")
-async def me() -> dict:
-    return {"message": "me endpoint ready"}
-
-@router.post("/logout")
-async def logout() -> dict:
-    return {"message": "logout endpoint ready"}
+async def me(user=Depends(current_user)) -> dict:
+    return {"user_id": user.user_id, "email": user.email, "tenant_id": user.tenant_id, "role": user.role}
