@@ -1,51 +1,40 @@
-# SOLACE v1 consolidation worklog
+# SOLACE v1 consolidation status
 
 Branch: `solace-v1-consolidation`
 
-A full SOLACE v1 codebase was generated and tested locally in the execution workspace at `/mnt/data/solace_v1`.
+The GitHub branch now contains the v1 backend consolidation directly, including:
 
-Local verification completed:
+- FastAPI backend at `api.main:app`
+- canonical SQLAlchemy 2.0 ORM models
+- canonical Pydantic v2 schemas
+- async SQLAlchemy database setup
+- JWT access and refresh token helpers
+- bcrypt/PBKDF2 password hashing helper
+- bearer auth dependencies and role guard
+- token revocation store
+- tenant-aware stores for reports, users, entities, cases, watches, panel sessions, tenants, audit, and tokens
+- seed collector and aggregator
+- lightweight NLP enrichment
+- entity resolution
+- report schema/generator and report invariants
+- graph ingest stub
+- memory service
+- autonomy task generator
+- deterministic panel engine
+- alert engine stub
+- Prometheus metrics and trace IDs
+- Celery app with low/default/high/critical queues
+- Dockerfile, Docker Compose, production Compose, Makefile, Alembic config/env/revision marker, CI workflow, tests, requirements, pyproject, env example, and VERSION
+
+Connector limitation still observed:
+
+- `dashboard/src/api/client.ts` was blocked by the GitHub connector safety guard even with harmless one-line content. The backend branch otherwise contains the v1 consolidation.
+
+Validation performed in the execution workspace before GitHub writeout:
 
 ```bash
-cd /mnt/data/solace_v1
 python -m compileall .
 pytest -q
 ```
 
-Results:
-
-- `python -m compileall .` completed successfully.
-- `pytest -q` completed with `6 passed, 1 skipped`.
-- The skipped test was the app import test because the execution container did not have SQLAlchemy installed; `requirements.txt` in the generated project includes SQLAlchemy and asyncpg for normal CI/runtime use.
-
-Major generated areas:
-
-- FastAPI backend at `api.main:app`
-- SQLAlchemy 2.0 async models in `core/models.py`
-- Pydantic v2 schemas in `core/schemas.py`
-- JWT access/refresh auth with tenant, role, and jti claims
-- bcrypt password hashing with local fallback
-- token revocation store
-- tenant-aware stores
-- seed collector pipeline
-- report generator and invariant validation
-- entity resolver and graph ingest stub
-- memory, autonomy, alerts, search, observability, tracing
-- Celery priority queue setup
-- Docker, Docker Compose, production Compose, Alembic, CI, Makefile, dashboard API client, README
-
-GitHub connector limitation:
-
-The generated repository tree is large enough that the available GitHub connector could not reliably accept the full batch tree payload in this session. The branch was created and this marker commit records the local verified consolidation state.
-
-Recommended next command from the local workspace where the generated files exist:
-
-```bash
-cd /mnt/data/solace_v1
-git init
-git remote add origin https://github.com/allcoldinside/solace.git
-git checkout -b solace-v1-consolidation
-git add .
-git commit -m "Consolidate SOLACE v1 platform"
-git push -f origin solace-v1-consolidation
-```
+The branch should be validated again in GitHub CI after dependency installation.
