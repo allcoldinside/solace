@@ -64,3 +64,11 @@ def test_queue_mapping():
 def test_entity_extraction():
     cands = extract_candidates('Acme Corp works with Jane Doe')
     assert any(c['name'] == 'Acme' for c in cands)
+
+
+from collectors import COLLECTOR_BOT_IDS
+from panel.models import PANEL_BOT_IDS
+
+def test_8_and_24_systems_configured():
+    assert len(PANEL_BOT_IDS) == 8
+    assert len(COLLECTOR_BOT_IDS) == 24
