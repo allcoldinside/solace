@@ -1,141 +1,147 @@
-"""Shared Pydantic schemas and enums for SOLACE."""
+"""Canonical Pydantic v2 schemas for SOLACE."""
+
+from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class TargetType(str, Enum):
-    """Supported investigation target categories."""
-
-    ORGANIZATION = "ORGANIZATION"
-    PERSON = "PERSON"
-    INFRASTRUCTURE = "INFRASTRUCTURE"
-    EVENT = "EVENT"
-    THREAT_ACTOR = "THREAT_ACTOR"
-
-
-class Classification(str, Enum):
-    """Traffic Light Protocol classification."""
-
-    WHITE = "TLP:WHITE"
-    GREEN = "TLP:GREEN"
-    AMBER = "TLP:AMBER"
-    RED = "TLP:RED"
-
-
-class ConfidenceLevel(str, Enum):
-    """Analyst confidence levels."""
-
-    HIGH = "HIGH"
-    MEDIUM = "MEDIUM"
-    LOW = "LOW"
+    person = "person"
+    organization = "organization"
+    infrastructure = "infrastructure"
+    event = "event"
+    threat_actor = "threat_actor"
+    unknown = "unknown"
 
 
 class CollectorID(str, Enum):
-    """Collector identifiers used across the pipeline."""
-
-    SPIDER_1 = "SPIDER-1"
-    SPIDER_2 = "SPIDER-2"
-    SPIDER_3 = "SPIDER-3"
-    SPIDER_4 = "SPIDER-4"
-    SPIDER_5 = "SPIDER-5"
-    SPIDER_6 = "SPIDER-6"
-    SPIDER_7 = "SPIDER-7"
-    SPIDER_8 = "SPIDER-8"
-    SPIDER_9 = "SPIDER-9"
-    SPIDER_10 = "SPIDER-10"
-    SPIDER_11 = "SPIDER-11"
-    SPIDER_12 = "SPIDER-12"
-    SPIDER_13 = "SPIDER-13"
-    SPIDER_14 = "SPIDER-14"
-    SPIDER_15 = "SPIDER-15"
-    SPIDER_16 = "SPIDER-16"
-    SPIDER_17 = "SPIDER-17"
-    SPIDER_18 = "SPIDER-18"
-    SPIDER_19 = "SPIDER-19"
-    SPIDER_20 = "SPIDER-20"
-    SPIDER_21 = "SPIDER-21"
-    SPIDER_22 = "SPIDER-22"
-    SPIDER_23 = "SPIDER-23"
-    SPIDER_24 = "SPIDER-24"
-    AGGREGATOR = "AGGREGATOR"
-    REPORT_WRITER = "REPORT-WRITER"
-
-
-class AnalystID(str, Enum):
-    """Analyst identifiers used by panel sessions."""
-
-    CLAUDE = "ANALYST-ALPHA"
-    CHATGPT = "ANALYST-BRAVO"
-    GEMINI = "SESSION-DIRECTOR"
-
-
-class PanelStatus(str, Enum):
-    """Panel orchestration status values."""
-
-    ACTIVE = "ACTIVE"
-    REDIRECTING = "REDIRECTING"
-    LOOP_BREAK = "LOOP-BREAK"
-    CONCLUDING = "CONCLUDING"
-    COMPLETE = "COMPLETE"
+    seed = "SEED"
+    aggregator = "AGGREGATOR"
 
 
 class RawIntelItemSchema(BaseModel):
-    """Raw normalized intelligence item."""
-
     content_hash: str
-    collector_id: CollectorID
+    collector_id: CollectorID | str
     source_url: str
     source_type: str
     content: str
-    content_en: str = ""
-    language: str = "en"
     target: str
     target_type: TargetType
     collected_at: datetime = Field(default_factory=datetime.utcnow)
-    reliability_score: float = Field(default=0.5, ge=0.0, le=1.0)
-    reliability_score: float = 0.5
-    metadata_: dict[str, str] = Field(default_factory=dict)
+    reliability_score: float = Field(default=0.5, ge=0, le=1)
+    metadata_: dict[str, Any] = Field(default_factory=dict)
 
 
 class CollectionResult(BaseModel):
-    """Result wrapper for a collector batch."""
-
-    collector_id: CollectorID
+    collector_id: CollectorID | str
     items: list[RawIntelItemSchema] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)
 
 
-class PanelTurn(BaseModel):
-    """Single panel transcript turn."""
+class ReportSchema(BaseModel):
+    report_id: str
+    subject: str
+    subject_type: str
+    classification: str = "TLP:WHITE"
+    confidence: str = "MEDIUM"
+    confidence_score: float = Field(default=0.5, ge=0, le=1)
+    executive_summary: str
+    key_findings: list[str] = Field(default_factory=list)
+    entity_map: dict[str, Any] = Field(default_factory=dict)
+    timeline: list[dict[str, Any]] = Field(default_factory=list)
+    behavioral_indicators: list[str] = Field(default_factory=list)
+    threat_assessment: dict[str, Any] = Field(default_factory=dict)
+    source_log: list[dict[str, Any]] = Field(default_factory=list)
+    gaps: list[str] = Field(default_factory=list)
+    analyst_notes: list[str] = Field(default_factory=list)
+    full_markdown: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    analyst: AnalystID
-    content: str
-    round_number: int
-    is_loop_flagged: bool = False
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+class PipelineRequest(BaseModel):
+    target: str = Field(min_length=1)
+    target_type: TargetType = TargetType.unknown
+    tenant_id: str | None = None
 
 
-class Disagreement(BaseModel):
-    """Panel disagreement event."""
+class PipelineResponse(BaseModel):
+    job_id: str
+    report_id: str
+    status: str
+    raw_count: int
+    enriched_count: int
+    entity_count: int
+    panel_session_id: str | None = None
 
-    round_number: int
-    topic: str
-    alpha_position: str
-    bravo_position: str
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
 
 
-__all__ = [
-    "TargetType",
-    "Classification",
-    "ConfidenceLevel",
-    "CollectorID",
-    "AnalystID",
-    "PanelStatus",
-    "RawIntelItemSchema",
-    "CollectionResult",
-    "PanelTurn",
-    "Disagreement",
-]
+class RegisterRequest(LoginRequest):
+    tenant_id: str = "default"
+    role: str = "analyst"
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class FullTokenResponse(TokenResponse):
+    refresh_token: str
+    expires_in: int
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+class CaseCreateRequest(BaseModel):
+    title: str
+    description: str = ""
+
+
+class WatchCreateRequest(BaseModel):
+    target: str
+    target_type: TargetType = TargetType.unknown
+    cadence: str = "daily"
+
+
+class TenantCreateRequest(BaseModel):
+    tenant_id: str
+    name: str
+
+
+class EntitySchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    entity_id: str
+    tenant_id: str = "default"
+    name: str
+    normalized_name: str
+    entity_type: str
+    confidence_score: float = 0.5
+    attributes: dict[str, Any] = Field(default_factory=dict)
+    source_report_ids: list[str] = Field(default_factory=list)
+
+
+class SearchRequest(BaseModel):
+    q: str
+    limit: int = Field(default=20, ge=1, le=100)
+
+
+class SearchResultSchema(BaseModel):
+    id: str
+    type: str
+    title: str
+    snippet: str
+    score: float = 1.0
