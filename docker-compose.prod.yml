@@ -1,0 +1,13 @@
+version: '3.9'
+services:
+  api:
+    build: .
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+  worker:
+    build: .
+    command: celery -A tasks.celery_app.celery_app worker -Q default,low -l info
+  worker_high:
+    build: .
+    command: celery -A tasks.celery_app.celery_app worker -Q high,critical -l info
+  redis:
+    image: redis:7
