@@ -1,6 +1,7 @@
 import time
 from sqlalchemy.ext.asyncio import AsyncSession
 from collectors import get_all_spiders
+from collectors.seed_collector import SeedCollector
 from collectors.aggregator import aggregate
 from nlp.pipeline import enrich_items
 from intelligence.entity_resolution import resolve_entities
@@ -24,6 +25,7 @@ async def run_pipeline(db: AsyncSession, tenant_id: str, target: str, target_typ
         for spider in get_all_spiders():
             collected.extend(await spider.collect(target, target_type))
 
+        collected = await SeedCollector().collect(target, target_type)
         aggregated = aggregate(collected)
         raw_store = aggregated
         enriched = enrich_items(raw_store)
@@ -45,6 +47,12 @@ async def run_pipeline(db: AsyncSession, tenant_id: str, target: str, target_typ
         )
         db.add(db_report)
         await db.commit()
+            report_id=report.report_id, tenant_id=tenant_id, subject=report.subject,
+            subject_type=report.subject_type, classification=report.classification,
+            confidence=report.confidence, confidence_score=report.confidence_score,
+            full_markdown=report.full_markdown, payload=report.__dict__,
+        )
+        db.add(db_report); await db.commit()
 
         entity_store = EntityStore(db)
         for e in entities:
@@ -72,6 +80,7 @@ async def run_pipeline(db: AsyncSession, tenant_id: str, target: str, target_typ
             'collector_bots_used': 24,
             'panel_bots_used': 8,
         }
+        return {'report_id': report.report_id, 'session_id': session.session_id, 'entities_saved': len(entities), 'alerts': alerts}
     except Exception:
         pipeline_failure.inc()
         pipeline_duration.observe(time.perf_counter() - start)

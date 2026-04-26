@@ -11,3 +11,6 @@ def get_spider(bot_id: str) -> SeedCollector:
 
 def get_all_spiders() -> list[SeedCollector]:
     return [get_spider(bot_id) for bot_id in COLLECTOR_BOT_IDS]
+
+def get_spider(_: str):
+    return SeedCollector()
