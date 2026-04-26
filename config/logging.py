@@ -1,45 +1,42 @@
-"""Structlog logging configuration."""
+"""Structured JSON logging configuration."""
 
+from __future__ import annotations
+
+import json
 import logging
 import sys
+from datetime import datetime, timezone
 from typing import Any
 
-import structlog
+from config.settings import get_settings
 
 
-def configure_logging(level: int = logging.INFO) -> None:
-    """Configure JSON structured logging.
-
-    Args:
-        level: Python logging level.
-    """
-    logging.basicConfig(format="%(message)s", stream=sys.stdout, level=level)
-    structlog.configure(
-        processors=[
-            structlog.contextvars.merge_contextvars,
-            structlog.stdlib.add_logger_name,
-            structlog.stdlib.add_log_level,
-            structlog.processors.TimeStamper(fmt="iso", utc=True),
-            structlog.processors.dict_tracebacks,
-            structlog.processors.JSONRenderer(),
-        ],
-        wrapper_class=structlog.stdlib.BoundLogger,
-        logger_factory=structlog.stdlib.LoggerFactory(),
-        cache_logger_on_first_use=True,
-    )
+class JsonFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        payload: dict[str, Any] = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if record.exc_info:
+            payload["exception"] = self.formatException(record.exc_info)
+        for key in ("trace_id", "tenant_id", "user_id"):
+            value = getattr(record, key, None)
+            if value is not None:
+                payload[key] = value
+        return json.dumps(payload, default=str)
 
 
-def get_logger(component: str, **kwargs: Any) -> structlog.stdlib.BoundLogger:
-    """Get a structured logger with a component binding.
+def configure_logging() -> None:
+    settings = get_settings()
+    root = logging.getLogger()
+    root.handlers.clear()
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(JsonFormatter() if settings.json_logs else logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
+    root.addHandler(handler)
+    root.setLevel(settings.log_level.upper())
 
-    Args:
-        component: Logical subsystem emitting logs.
-        **kwargs: Additional bound context.
 
-    Returns:
-        Bound structlog logger.
-    """
-    logger = structlog.get_logger().bind(component=component)
-    if kwargs:
-        logger = logger.bind(**kwargs)
-    return logger
+def get_logger(name: str) -> logging.Logger:
+    return logging.getLogger(name)
