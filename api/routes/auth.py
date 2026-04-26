@@ -4,10 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
-from core.schemas import FullTokenResponse, LoginRequest, RegisterRequest
-from security.auth import create_access_token, create_refresh_token
+from core.schemas import FullTokenResponse, LoginRequest, MessageResponse, RefreshRequest, RegisterRequest
+from security.auth import create_access_token, create_refresh_token, decode_token
 from security.deps import current_user
 from storage.tenant_store import TenantStore
+from storage.token_store import TokenStore
 from storage.user_store import UserStore
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -37,6 +38,26 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)) -> Fu
     return build_tokens(user)
 
 
+@router.post("/refresh", response_model=FullTokenResponse)
+async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)) -> FullTokenResponse:
+    data = decode_token(payload.refresh_token)
+    if data.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="refresh token required")
+    if await TokenStore(db).is_revoked(str(data.get("jti"))):
+        raise HTTPException(status_code=401, detail="token revoked")
+    user = await UserStore(db).get_by_user_id(str(data.get("sub")))
+    if user is None:
+        raise HTTPException(status_code=401, detail="user not found")
+    return build_tokens(user)
+
+
 @router.get("/me")
 async def me(user=Depends(current_user)) -> dict:
     return {"user_id": user.user_id, "email": user.email, "tenant_id": user.tenant_id, "role": user.role}
+
+
+@router.post("/logout", response_model=MessageResponse)
+async def logout(payload: RefreshRequest, db: AsyncSession = Depends(get_db), user=Depends(current_user)) -> MessageResponse:
+    data = decode_token(payload.refresh_token)
+    await TokenStore(db).revoke(str(data.get("jti")), user.tenant_id)
+    return MessageResponse(message="logged out")
