@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import aiohttp
 
-from config.settings import settings
+from config.settings import get_settings
+settings = get_settings()
 from reports.schema import ReportData
 
 

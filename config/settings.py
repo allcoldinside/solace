@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', extra='ignore')
 
+    # Core
     app_name: str = 'SOLACE'
     env: str = 'dev'
     api_prefix: str = '/api'
@@ -14,14 +15,31 @@ class Settings(BaseSettings):
     refresh_token_exp_minutes: int = 60 * 24 * 7
     algorithm: str = 'HS256'
 
+    # Database / cache
     database_url: str = Field('sqlite+aiosqlite:///./solace.db', alias='DATABASE_URL')
     redis_url: str = Field('redis://localhost:6379/0', alias='REDIS_URL')
     celery_broker_url: str = Field('redis://localhost:6379/0', alias='CELERY_BROKER_URL')
     celery_result_backend: str = Field('redis://localhost:6379/0', alias='CELERY_RESULT_BACKEND')
 
+    # API
     cors_origins: list[str] = ['*']
     default_tenant_id: str = 'default'
     rate_limit_per_minute: int = 120
+
+    # Optional external API keys (leave blank to disable that collector/integration)
+    github_token: str = ''
+    hibp_api_key: str = ''
+    etherscan_api_key: str = ''
+    ollama_host: str = 'http://localhost:11434'
+    shodan_api_key: str = ''
+
+    # MISP
+    misp_url: str = ''
+    misp_api_key: str = ''
+
+    # Slack
+    slack_bot_token: str = ''
+    slack_alerts_channel_id: str = ''
 
 
 @lru_cache(maxsize=1)
