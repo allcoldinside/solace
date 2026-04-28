@@ -1,18 +1,63 @@
-"""Panel session state container."""
-
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
 
-from core.schemas import AnalystID, Disagreement, PanelStatus, PanelTurn
-from reports.schema import generate_session_id
+
+class PanelStatus(str, Enum):
+    ACTIVE = "active"
+    CONCLUDED = "concluded"
+    FAILED = "failed"
+
+
+class AnalystID(str, Enum):
+    ALPHA = "alpha"
+    BRAVO = "bravo"
+    CHARLIE = "charlie"
+    DELTA = "delta"
+    ECHO = "echo"
+
+
+@dataclass
+class PanelTurn:
+    analyst: AnalystID
+    content: str
+    round_number: int = 0
+    is_loop_flagged: bool = False
+
+    def model_dump(self, **_) -> dict:
+        return {
+            "analyst": self.analyst.value,
+            "content": self.content,
+            "round_number": self.round_number,
+            "is_loop_flagged": self.is_loop_flagged,
+        }
+
+
+@dataclass
+class Disagreement:
+    round_number: int
+    topic: str
+    alpha_position: str
+    bravo_position: str
+
+    def model_dump(self, **_) -> dict:
+        return {
+            "round_number": self.round_number,
+            "topic": self.topic,
+            "alpha_position": self.alpha_position,
+            "bravo_position": self.bravo_position,
+        }
+
+
+def generate_session_id() -> str:
+    return f"SESSION-{uuid.uuid4().hex[:10].upper()}"
 
 
 @dataclass
 class PanelSessionState:
-    """Tracks round-by-round panel state and transcript."""
-
     report_id: str
     topic: str
     target: str
@@ -32,74 +77,44 @@ class PanelSessionState:
     final_synthesis: str = ""
 
     def add_turn(self, analyst: AnalystID, content: str, is_loop_flagged: bool = False) -> PanelTurn:
-        """Append turn to transcript."""
-        turn = PanelTurn(
-            analyst=analyst,
-            content=content,
-            round_number=self.round,
-            is_loop_flagged=is_loop_flagged,
-        )
+        turn = PanelTurn(analyst=analyst, content=content, round_number=self.round, is_loop_flagged=is_loop_flagged)
         self.history.append(turn)
         return turn
 
     def record_position(self, analyst_id: str, content: str) -> None:
-        """Store truncated position text by analyst."""
-        stored = content[:300]
-        self.positions.setdefault(analyst_id, []).append(stored)
+        self.positions.setdefault(analyst_id, []).append(content[:300])
 
-    def add_disagreement(
-        self,
-        round_number: int,
-        topic: str,
-        alpha_position: str,
-        bravo_position: str,
-    ) -> None:
-        """Record disagreement between Alpha and Bravo."""
-        self.disagreements.append(
-            Disagreement(
-                round_number=round_number,
-                topic=topic,
-                alpha_position=alpha_position,
-                bravo_position=bravo_position,
-            )
-        )
+    def add_disagreement(self, round_number: int, topic: str, alpha_position: str, bravo_position: str) -> None:
+        self.disagreements.append(Disagreement(round_number=round_number, topic=topic, alpha_position=alpha_position, bravo_position=bravo_position))
 
     def mark_covered(self, topic_key: str) -> None:
-        """Mark topic as covered in current round."""
         normalized = topic_key.strip().lower()
         if normalized and normalized not in self.covered_topics:
             self.covered_topics[normalized] = self.round
 
     def get_recent_context(self, n_turns: int = 6) -> str:
-        """Format recent transcript context for prompts."""
-        recent_turns = self.history[-n_turns:]
-        return "\n".join(f"[{turn.analyst.value}] {turn.content}" for turn in recent_turns)
+        return "\n".join(f"[{t.analyst.value}] {t.content}" for t in self.history[-n_turns:])
 
     def get_formatted_transcript(self) -> str:
-        """Render full transcript text."""
-        return "\n".join(
-            f"Round {turn.round_number} | {turn.analyst.value}: {turn.content}" for turn in self.history
-        )
+        return "\n".join(f"Round {t.round_number} | {t.analyst.value}: {t.content}" for t in self.history)
 
     @property
     def duration_str(self) -> str:
-        """Compute human-readable session duration."""
         end = self.end_time or datetime.utcnow()
-        total_seconds = max(0, int((end - self.start_time).total_seconds()))
-        minutes, seconds = divmod(total_seconds, 60)
-        return f"{minutes}m {seconds}s"
+        total = max(0, int((end - self.start_time).total_seconds()))
+        m, s = divmod(total, 60)
+        return f"{m}m {s}s"
 
-    def to_db_dict(self) -> dict[str, object]:
-        """Serialize state for persistence."""
+    def to_db_dict(self) -> dict:
         return {
             "session_id": self.session_id,
             "report_id": self.report_id,
             "topic": self.topic,
             "target": self.target,
-            "transcript": [turn.model_dump(mode="json") for turn in self.history],
+            "transcript": [t.model_dump() for t in self.history],
             "positions": self.positions,
             "covered_topics": sorted(self.covered_topics.keys()),
-            "disagreements": [item.model_dump(mode="json") for item in self.disagreements],
+            "disagreements": [d.model_dump() for d in self.disagreements],
             "rounds_completed": self.round,
             "final_synthesis": self.final_synthesis,
             "concluded": self.concluded,

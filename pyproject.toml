@@ -5,21 +5,23 @@ requires-python = ">=3.11"
 
 dependencies = [
   "fastapi>=0.115",
-  "uvicorn>=0.30",
+  "uvicorn[standard]>=0.30",
   "sqlalchemy>=2.0",
   "aiosqlite>=0.20",
   "pydantic>=2.8",
   "pydantic-settings>=2.3",
-  "python-jose>=3.3.0",
-  "pyjwt>=2.8",
-  "passlib[bcrypt]>=1.7",
+  "bcrypt>=4.0",
   "celery>=5.4",
   "redis>=5.0",
+  "kombu>=5.3",
   "prometheus-client>=0.20",
   "alembic>=1.13",
   "pytest>=8.0",
-  "httpx>=0.27"
+  "pytest-asyncio>=0.23",
+  "httpx>=0.27",
+  "anyio>=4.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
