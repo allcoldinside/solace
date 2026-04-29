@@ -1,57 +1,18 @@
-"""Collectors package with lazy imports."""
-
-from typing import Type
-
-from collectors.base_collector import BaseCollector
-
-
-def get_spider(spider_id: str) -> Type[BaseCollector]:
-    """Resolve a spider class lazily.
-
-    Args:
-        spider_id: Collector identifier like SPIDER-1.
-
-    Returns:
-        Collector class.
-
-    Raises:
-        KeyError: If spider id is unknown.
-    """
-    mapping: dict[str, str] = {
-        "SPIDER-AGGREGATOR": "collectors.aggregator.AggregatorBot",
-    }
-    target = mapping.get(spider_id)
-    if target is None:
-        raise KeyError(f"Unknown spider id: {spider_id}")
-    module_name, class_name = target.rsplit(".", 1)
-    module = __import__(module_name, fromlist=[class_name])
-    return getattr(module, class_name)
-
-
-__all__ = ["BaseCollector", "get_spider"]
 """Collector factory and spider registry."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
+
+from collectors.base_collector import BaseCollector
 
 if TYPE_CHECKING:
-    from collectors.base import BaseCollector
+    pass
 
 
-def get_spider(spider_id: str) -> "BaseCollector":
-    """Instantiate collector by spider identifier.
-
-    Args:
-        spider_id: Collector ID like ``SPIDER-1``.
-
-    Returns:
-        Instantiated collector implementation.
-
-    Raises:
-        ValueError: If spider is unknown.
-    """
-    mapping = {
+def get_spider(spider_id: str) -> Type[BaseCollector]:
+    mapping: dict[str, tuple[str, str]] = {
+        "SPIDER-AGGREGATOR": ("collectors.aggregator", "AggregatorBot"),
         "SPIDER-9": ("collectors.spider_identity", "SpiderIdentity"),
         "SPIDER-10": ("collectors.spider_crypto", "SpiderCrypto"),
         "SPIDER-11": ("collectors.spider_jobs", "SpiderJobs"),
@@ -69,26 +30,11 @@ def get_spider(spider_id: str) -> "BaseCollector":
         "SPIDER-23": ("collectors.spider_breach", "SpiderBreach"),
         "SPIDER-24": ("collectors.spider_ai_analyst", "SpiderAiAnalyst"),
     }
-    if spider_id in {f"SPIDER-{idx}" for idx in range(1, 9)}:
-        from collectors.base import BaseCollector
-
-        class _GenericSpider(BaseCollector):
-            """Compatibility wrapper for baseline spiders."""
-
-            def __init__(self, spider: str) -> None:
-                super().__init__()
-                self.bot_id = spider
-                self.domain = "baseline"
-
-        return _GenericSpider(spider_id)
     if spider_id not in mapping:
         raise ValueError(f"Unknown spider_id: {spider_id}")
     module_name, class_name = mapping[spider_id]
     module = __import__(module_name, fromlist=[class_name])
-    spider_cls = getattr(module, class_name)
-    return spider_cls()
+    return getattr(module, class_name)
 
 
-def get_all_spiders() -> list["BaseCollector"]:
-    """Instantiate all 24 spiders in sequence order."""
-    return [get_spider(f"SPIDER-{idx}") for idx in range(1, 25)]
+__all__ = ["BaseCollector", "get_spider"]
