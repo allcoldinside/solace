@@ -1,7 +1,5 @@
-from abc import ABC, abstractmethod
+# Canonical BaseCollector is defined in collectors/base.py
+# This module re-exports it so legacy imports keep working.
+from collectors.base import BaseCollector  # noqa: F401
 
-
-class BaseCollector(ABC):
-    @abstractmethod
-    async def collect(self, target: str, target_type: str) -> list[dict]:
-        raise NotImplementedError
+__all__ = ['BaseCollector']

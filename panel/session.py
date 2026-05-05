@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 
@@ -72,7 +72,7 @@ class PanelSessionState:
     max_rounds: int = 6
     concluded: bool = False
     status: PanelStatus = PanelStatus.ACTIVE
-    start_time: datetime = field(default_factory=datetime.utcnow)
+    start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     end_time: datetime | None = None
     final_synthesis: str = ""
 
@@ -100,7 +100,7 @@ class PanelSessionState:
 
     @property
     def duration_str(self) -> str:
-        end = self.end_time or datetime.utcnow()
+        end = self.end_time or datetime.now(timezone.utc)
         total = max(0, int((end - self.start_time).total_seconds()))
         m, s = divmod(total, 60)
         return f"{m}m {s}s"

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import aiohttp
@@ -84,7 +84,7 @@ class BaseCollector:
             content=content,
             target=target,
             target_type=target_type,
-            collected_at=datetime.utcnow(),
+            collected_at=datetime.now(timezone.utc),
             reliability_score=reliability if reliability is not None else self.source_reliability,
             metadata_=metadata or {},
         )

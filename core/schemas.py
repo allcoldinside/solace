@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class TargetType(str, Enum):
@@ -11,11 +11,10 @@ class TargetType(str, Enum):
 
 
 # ---------------------------------------------------------------------------
-# Collector schemas (used by base collector and all spider modules)
+# Collector schemas
 # ---------------------------------------------------------------------------
 
 class CollectorID(str, Enum):
-    """Stable identifier for every collector bot."""
     SEED = 'seed'
     SPIDER_9 = 'SPIDER-9'
     SPIDER_10 = 'SPIDER-10'
@@ -37,7 +36,6 @@ class CollectorID(str, Enum):
 
     @classmethod
     def _missing_(cls, value: object) -> 'CollectorID':
-        """Accept arbitrary string values (e.g. CollectorID('SPIDER-0'))."""
         obj = str.__new__(cls, value)
         obj._name_ = str(value)
         obj._value_ = str(value)
@@ -45,7 +43,6 @@ class CollectorID(str, Enum):
 
 
 class RawIntelItemSchema(BaseModel):
-    """Normalised intelligence item produced by a collector."""
     content_hash: str
     collector_id: CollectorID
     source_url: str
@@ -59,7 +56,6 @@ class RawIntelItemSchema(BaseModel):
 
 
 class CollectionResult(BaseModel):
-    """Container returned by every collector."""
     collector_id: CollectorID
     items: list[RawIntelItemSchema] = Field(default_factory=list)
 
@@ -80,8 +76,15 @@ class ReportSchema(BaseModel):
 
 
 class PipelineRequest(BaseModel):
-    target: str
+    target: str = Field(min_length=1, max_length=512)
     target_type: TargetType = TargetType.organization
+
+    @field_validator('target')
+    @classmethod
+    def target_not_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError('target must not be blank')
+        return v.strip()
 
 
 class PipelineResponse(BaseModel):
@@ -92,12 +95,12 @@ class PipelineResponse(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 
 class RegisterRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str = Field(min_length=8)
     role: str = 'analyst'
     tenant_id: str = 'default'
@@ -121,18 +124,18 @@ class MessageResponse(BaseModel):
 
 
 class CaseCreateRequest(BaseModel):
-    title: str
+    title: str = Field(min_length=1, max_length=512)
     description: str = ''
 
 
 class WatchCreateRequest(BaseModel):
-    target: str
+    target: str = Field(min_length=1, max_length=512)
     target_type: TargetType
 
 
 class TenantCreateRequest(BaseModel):
-    tenant_id: str
-    name: str
+    tenant_id: str = Field(min_length=1, max_length=64)
+    name: str = Field(min_length=1, max_length=255)
 
 
 class EntitySchema(BaseModel):

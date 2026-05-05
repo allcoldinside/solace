@@ -1,3 +1,4 @@
+import asyncio
 import time
 from sqlalchemy.ext.asyncio import AsyncSession
 from collectors.seed_collector import SeedCollector
@@ -15,6 +16,8 @@ from observability.metrics import pipeline_duration, pipeline_success, pipeline_
 from core.models import Report, AutonomousTask
 from storage.entity_store import EntityStore
 from storage.panel_store import PanelStore
+from tasks.celery_app import celery_app
+from core.database import SessionLocal
 
 
 async def run_pipeline(db: AsyncSession, tenant_id: str, target: str, target_type: str) -> dict:
@@ -60,3 +63,15 @@ async def run_pipeline(db: AsyncSession, tenant_id: str, target: str, target_typ
         pipeline_failure.inc()
         pipeline_duration.observe(time.perf_counter() - start)
         raise
+
+
+@celery_app.task(name='tasks.pipeline.celery_run_pipeline', bind=True, max_retries=3, default_retry_delay=60)
+def celery_run_pipeline(self, tenant_id: str, target: str, target_type: str) -> dict:
+    """Sync Celery entry-point; creates its own DB session and delegates to async run_pipeline."""
+    async def _run():
+        async with SessionLocal() as db:
+            return await run_pipeline(db, tenant_id, target, target_type)
+    try:
+        return asyncio.run(_run())
+    except Exception as exc:
+        raise self.retry(exc=exc)

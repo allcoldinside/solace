@@ -7,4 +7,4 @@ from datetime import datetime, timedelta
 
 def next_run(interval_hours: int) -> datetime:
     """Compute next scheduled run timestamp."""
-    return datetime.utcnow() + timedelta(hours=interval_hours)
+    return datetime.now(timezone.utc) + timedelta(hours=interval_hours)
