@@ -12,7 +12,7 @@ from starlette.responses import Response
 
 from api.middleware.errors import install_error_handlers
 from api.middleware.observability import ObservabilityMiddleware
-from api.routes import audit, auth, cases, entities, graph, health, maintenance, memory, metrics, panel, pipeline, reports, search, system, watches
+from api.routes import audit, auth, cases, entities, graph, health, maintenance, memory, metrics, panel, pipeline, reports, search, system, tenants, watches
 from config.logging import configure_logging
 from config.settings import get_settings
 from core.database import close_db
@@ -43,7 +43,7 @@ def create_app() -> FastAPI:
     app.add_middleware(RateLimitMiddleware)
     app.add_middleware(ObservabilityMiddleware)
     install_error_handlers(app)
-    for router in (health.router, metrics.router, auth.router, pipeline.router, reports.router, panel.router, cases.router, watches.router, entities.router, memory.router, graph.router, search.router, audit.router, system.router, maintenance.router):
+    for router in (health.router, metrics.router, auth.router, pipeline.router, reports.router, panel.router, cases.router, watches.router, entities.router, memory.router, graph.router, search.router, audit.router, system.router, maintenance.router, tenants.router):
         app.include_router(router, prefix="/api")
     return app
 

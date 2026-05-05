@@ -145,3 +145,69 @@ class SearchResultSchema(BaseModel):
     title: str
     snippet: str
     score: float = 1.0
+
+
+# ─── Panel types ─────────────────────────────────────────────────────────────
+
+class PanelStatus(str, Enum):
+    ACTIVE = "active"
+    COMPLETE = "complete"
+    FAILED = "failed"
+
+
+class AnalystID(str, Enum):
+    ALPHA = "ANALYST-ALPHA"
+    BRAVO = "ANALYST-BRAVO"
+    DIRECTOR = "SESSION-DIRECTOR"
+
+
+class PanelTurn(BaseModel):
+    analyst: AnalystID
+    content: str
+    round_number: int = 0
+    is_loop_flagged: bool = False
+
+
+class Disagreement(BaseModel):
+    round_number: int
+    topic: str
+    alpha_position: str
+    bravo_position: str
+
+
+# ─── Tenant schemas ───────────────────────────────────────────────────────────
+
+class TenantSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    tenant_id: str
+    name: str
+    status: str = "active"
+    settings: dict[str, Any] = Field(default_factory=dict)
+
+
+# ─── Autonomous task schemas ──────────────────────────────────────────────────
+
+class AutonomousTaskResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    task_id: str
+    tenant_id: str
+    report_id: str | None = None
+    title: str
+    description: str = ""
+    priority: str = "default"
+    status: str = "open"
+
+
+# ─── Classification / confidence enums ───────────────────────────────────────
+
+class Classification(str, Enum):
+    WHITE = "TLP:WHITE"
+    GREEN = "TLP:GREEN"
+    AMBER = "TLP:AMBER"
+    RED = "TLP:RED"
+
+
+class ConfidenceLevel(str, Enum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
