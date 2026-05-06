@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     app_name: str = 'SOLACE'
     env: str = 'dev'
     api_prefix: str = '/api'
-    secret_key: str = Field('change-me-in-env-please-32-characters-minimum', min_length=32)
+    secret_key: str = Field(..., min_length=32, alias='SECRET_KEY')
     access_token_exp_minutes: int = 30
     refresh_token_exp_minutes: int = 60 * 24 * 7
     algorithm: str = 'HS256'
@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ['*']
     default_tenant_id: str = 'default'
     rate_limit_per_minute: int = 120
+
+    llm_provider: str = Field('mock', alias='LLM_PROVIDER')
+    llm_api_key: str | None = Field(default=None, alias='LLM_API_KEY')
 
 
 @lru_cache(maxsize=1)
