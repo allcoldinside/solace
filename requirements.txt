@@ -12,3 +12,4 @@ prometheus-client
 alembic
 pytest
 httpx
+python-multipart

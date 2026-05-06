@@ -1,9 +1,12 @@
 from collections.abc import Callable
-from fastapi import Depends, HTTPException, status
+
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.database import get_db
 from security.auth import decode_token
+from storage.membership_store import MembershipStore
 from storage.token_store import TokenStore
 from storage.user_store import UserStore
 
@@ -28,9 +31,26 @@ async def current_user(
     return user
 
 
+async def tenant_scoped_user(
+    x_tenant_id: str | None = Header(default=None, alias='X-Tenant-ID'),
+    user=Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    tenant_id = x_tenant_id or user.tenant_id
+    if user.role == 'admin':
+        return user
+    if tenant_id == user.tenant_id:
+        return user
+    has_access = await MembershipStore(db).has_membership(user.user_id, tenant_id)
+    if not has_access:
+        raise HTTPException(status_code=403, detail='tenant access denied')
+    return user
+
+
 def require_role(role: str) -> Callable:
     async def checker(user=Depends(current_user)):
         if user.role != role and user.role != 'admin':
             raise HTTPException(status_code=403, detail='forbidden')
         return user
+
     return checker

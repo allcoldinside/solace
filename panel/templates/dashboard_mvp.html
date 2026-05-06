@@ -1,0 +1,153 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>SOLACE Dashboard MVP</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 16px; }
+    section { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; }
+    input, textarea, button, select { margin: 4px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+    .row { display: flex; gap: 12px; }
+    .col { flex: 1; }
+  </style>
+</head>
+<body>
+<h1>SOLACE Dashboard MVP</h1>
+<section>
+  <h3>Login</h3>
+  <input id="email" placeholder="email" />
+  <input id="password" placeholder="password" type="password" />
+  <button onclick="login()">Login</button>
+  <span id="loginStatus"></span>
+</section>
+
+<section>
+  <h3>Cases</h3>
+  <input id="caseTitle" placeholder="case title" />
+  <input id="caseDesc" placeholder="description" />
+  <button onclick="createCase()">Create Case</button>
+  <button onclick="loadCases()">Refresh Cases</button>
+  <table><thead><tr><th>ID</th><th>Title</th><th>Status</th><th>Action</th></tr></thead><tbody id="casesBody"></tbody></table>
+</section>
+
+<section>
+  <h3>Case Detail Workflow</h3>
+  <div>Selected Case: <b id="selectedCase">none</b></div>
+  <div class="row">
+    <div class="col">
+      <h4>Upload Document</h4>
+      <input type="file" id="fileInput" />
+      <button onclick="uploadDoc()">Upload</button>
+      <pre id="uploadOut"></pre>
+
+      <h4>Generate Report</h4>
+      <input id="reportTitle" placeholder="Report title" />
+      <button onclick="generateReport()">Generate</button>
+      <pre id="reportOut"></pre>
+    </div>
+    <div class="col">
+      <h4>Claims</h4><pre id="claimsOut"></pre>
+      <h4>Entities</h4><pre id="entitiesOut"></pre>
+      <h4>Timeline</h4><pre id="timelineOut"></pre>
+    </div>
+  </div>
+  <button onclick="loadCaseViews()">Refresh Claims/Entities/Timeline</button>
+</section>
+
+<section>
+  <h3>Tasks and Alerts</h3>
+  <button onclick="loadTasksAlerts()">Refresh</button>
+  <h4>Tasks</h4><pre id="tasksOut"></pre>
+  <h4>Alerts</h4><pre id="alertsOut"></pre>
+</section>
+
+<section>
+  <h3>Audit (Admin)</h3>
+  <button onclick="loadAudit()">Load Audit</button>
+  <pre id="auditOut"></pre>
+</section>
+
+<script>
+let token = localStorage.getItem('solace_token') || '';
+let currentCaseId = '';
+
+async function api(path, options={}) {
+  options.headers = options.headers || {};
+  if (token) options.headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`/api${path}`, options);
+  const txt = await res.text();
+  try { return { ok: res.ok, status: res.status, data: JSON.parse(txt) }; }
+  catch { return { ok: res.ok, status: res.status, data: txt }; }
+}
+
+async function login() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const res = await api('/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password})});
+  if (res.ok) { token = res.data.access_token; localStorage.setItem('solace_token', token); document.getElementById('loginStatus').textContent='ok'; }
+  else document.getElementById('loginStatus').textContent=`failed ${res.status}`;
+}
+
+async function createCase() {
+  const title = document.getElementById('caseTitle').value;
+  const description = document.getElementById('caseDesc').value;
+  await api('/cases', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({title, description})});
+  loadCases();
+}
+
+async function loadCases() {
+  const res = await api('/cases');
+  const body = document.getElementById('casesBody'); body.innerHTML='';
+  if (!res.ok) { body.innerHTML = `<tr><td colspan='4'>Failed ${res.status}</td></tr>`; return; }
+  for (const c of res.data) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${c.case_id}</td><td>${c.title}</td><td>${c.status}</td><td><button onclick="selectCase('${c.case_id}')">Open</button></td>`;
+    body.appendChild(tr);
+  }
+}
+
+function selectCase(caseId){ currentCaseId = caseId; document.getElementById('selectedCase').textContent = caseId; loadCaseViews(); }
+
+async function uploadDoc() {
+  if (!currentCaseId) return;
+  const file = document.getElementById('fileInput').files[0];
+  const form = new FormData(); form.append('file', file);
+  const res = await fetch(`/api/cases/${currentCaseId}/sources/upload`, { method:'POST', headers: token ? {'Authorization': `Bearer ${token}`} : {}, body: form });
+  const data = await res.json();
+  document.getElementById('uploadOut').textContent = JSON.stringify(data, null, 2);
+}
+
+async function loadCaseViews(){
+  if(!currentCaseId) return;
+  const [claims, entities, timeline] = await Promise.all([
+    api(`/cases/${currentCaseId}/claims`),
+    api(`/cases/${currentCaseId}/entities`),
+    api(`/cases/${currentCaseId}/timeline`)
+  ]);
+  document.getElementById('claimsOut').textContent = JSON.stringify(claims.data, null, 2);
+  document.getElementById('entitiesOut').textContent = JSON.stringify(entities.data, null, 2);
+  document.getElementById('timelineOut').textContent = JSON.stringify(timeline.data, null, 2);
+}
+
+async function generateReport(){
+  if(!currentCaseId) return;
+  const title = document.getElementById('reportTitle').value || 'Case Report';
+  const res = await api(`/reports/cases/${currentCaseId}/generate`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({title, report_type:'intelligence'})});
+  document.getElementById('reportOut').textContent = JSON.stringify(res.data, null, 2);
+}
+
+async function loadTasksAlerts(){
+  const [tasks, alerts] = await Promise.all([api('/tasks'), api('/alerts')]);
+  document.getElementById('tasksOut').textContent = JSON.stringify(tasks.data, null, 2);
+  document.getElementById('alertsOut').textContent = JSON.stringify(alerts.data, null, 2);
+}
+
+async function loadAudit(){
+  const res = await api('/audit');
+  document.getElementById('auditOut').textContent = JSON.stringify(res.data, null, 2);
+}
+</script>
+</body>
+</html>
