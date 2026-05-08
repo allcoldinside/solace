@@ -23,7 +23,22 @@ class Settings(BaseSettings):
     default_tenant_id: str = 'default'
     rate_limit_per_minute: int = 120
 
+    # Optional external API integrations (collectors / alerting)
+    github_token: str | None = None
+    hibp_api_key: str | None = None
+    etherscan_api_key: str | None = None
+    shodan_api_key: str | None = None
+    virustotal_api_key: str | None = None
+    misp_url: str = 'http://misp.local'
+    misp_api_key: str | None = None
+    slack_bot_token: str | None = None
+    slack_signing_secret: str | None = None
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
+
+
+# Module-level instance so callers can use `from config.settings import settings`
+settings = get_settings()

@@ -24,3 +24,7 @@ class ReportData:
 
 def new_report_id() -> str:
     return f'REPORT-{uuid.uuid4().hex[:12].upper()}'
+
+
+def generate_session_id() -> str:
+    return f'SESSION-{uuid.uuid4().hex[:10]}'

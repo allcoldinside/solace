@@ -7,7 +7,7 @@ from config.logging import configure_logging
 from config.settings import get_settings
 from core.database import shutdown_db
 from security.rate_limit import RateLimitMiddleware
-from api.routes import auth, audit, cases, entities, graph, health, maintenance, memory, metrics, panel, pipeline, reports, search, system, watches
+from api.routes import auth, audit, cases, entities, graph, health, maintenance, memory, metrics, panel, pipeline, reports, search, system, tenants, watches
 
 settings = get_settings()
 configure_logging()
@@ -30,5 +30,5 @@ async def security_headers(request, call_next):
     response.headers['X-Frame-Options'] = 'DENY'
     return response
 
-for r in [health.router, metrics.router, auth.router, pipeline.router, reports.router, panel.router, cases.router, watches.router, entities.router, memory.router, graph.router, search.router, audit.router, system.router, maintenance.router]:
+for r in [health.router, metrics.router, auth.router, pipeline.router, reports.router, panel.router, cases.router, watches.router, entities.router, memory.router, graph.router, search.router, audit.router, system.router, maintenance.router, tenants.router]:
     app.include_router(r, prefix='/api')

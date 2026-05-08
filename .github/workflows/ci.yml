@@ -3,10 +3,18 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
+      DATABASE_URL: sqlite+aiosqlite:///./test_solace.db
+      SECRET_KEY: test-secret-key-for-ci-32-chars-minimum
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: {python-version: '3.11'}
-      - run: pip install -r requirements.txt
-      - run: python -m compileall .
-      - run: pytest
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Syntax check
+        run: python -m compileall . -q
+      - name: Run tests
+        run: pytest -v
