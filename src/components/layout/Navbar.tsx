@@ -37,6 +37,9 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
+          <Link href="/companion" className="text-cold-green font-mono text-xs tracking-widest uppercase border border-cold-green/40 px-3 py-1 hover:bg-cold-green/10 transition-all">
+            ◆ APP
+          </Link>
           {session ? (
             <Link href="/portal" className="text-cold-green font-mono text-xs tracking-widest uppercase border border-cold-green/40 px-3 py-1 hover:bg-cold-green hover:text-cold-black transition-all">
               Portal
@@ -74,6 +77,9 @@ export default function Navbar() {
                 {l.label}
               </Link>
             ))}
+            <Link href="/companion" onClick={() => setOpen(false)} className="text-cold-green font-mono text-sm tracking-widest uppercase">
+              ◆ APP
+            </Link>
             {session ? (
               <Link href="/portal" onClick={() => setOpen(false)} className="text-cold-green font-mono text-sm tracking-widest uppercase">
                 Portal
