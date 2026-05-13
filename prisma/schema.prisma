@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  alias       String?
+  password    String
+  role        String   @default("member")
+  rank        String   @default("prospect")
+  points      Int      @default(0)
+  discordName String?
+  interest    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders   Order[]
+  missions MissionCompletion[]
+  rewards  RewardRedemption[]
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  userId          String?
+  stripeSessionId String   @unique
+  amount          Int
+  status          String   @default("pending")
+  items           String
+  email           String?
+  createdAt       DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+model CartelRequest {
+  id        String   @id @default(cuid())
+  email     String
+  alias     String?
+  interest  String?
+  discord   String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+}
+
+model EmailSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  tags      String?
+  source    String?
+  createdAt DateTime @default(now())
+}
+
+model MissionCompletion {
+  id        String   @id @default(cuid())
+  userId    String
+  missionId String
+  proof     String?
+  status    String   @default("pending")
+  points    Int      @default(0)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model RewardRedemption {
+  id        String   @id @default(cuid())
+  userId    String
+  rewardId  String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}

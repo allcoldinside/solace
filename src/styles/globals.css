@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cold-black: #080808;
+  --cold-dark: #0f0f0f;
+  --cold-charcoal: #1a1a1a;
+  --cold-green: #00ff41;
+  --cold-green-dim: #00cc33;
+  --cold-green-glow: rgba(0, 255, 65, 0.15);
+  --cold-gray: #2a2a2a;
+  --cold-gray-light: #4a4a4a;
+  --cold-smoke: #888888;
+  --cold-white: #e8e8e8;
+  --cold-gold: #c9a84c;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background-color: var(--cold-black);
+  color: var(--cold-white);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--cold-green);
+  color: var(--cold-black);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cold-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cold-gray);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cold-green-dim);
+}
+
+@layer components {
+  .neon-text {
+    color: var(--cold-green);
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.7), 0 0 20px rgba(0, 255, 65, 0.4);
+  }
+
+  .neon-border {
+    border: 1px solid var(--cold-green);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.2), inset 0 0 10px rgba(0, 255, 65, 0.05);
+  }
+
+  .neon-btn {
+    @apply bg-transparent border border-cold-green text-cold-green font-mono tracking-widest uppercase px-6 py-3 transition-all duration-200;
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+  }
+
+  .neon-btn:hover {
+    @apply bg-cold-green text-cold-black;
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.6), 0 0 40px rgba(0, 255, 65, 0.3);
+  }
+
+  .neon-btn-solid {
+    @apply bg-cold-green text-cold-black font-mono tracking-widest uppercase px-6 py-3 transition-all duration-200 font-bold;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
+  }
+
+  .neon-btn-solid:hover {
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.7), 0 0 60px rgba(0, 255, 65, 0.3);
+  }
+
+  .dark-panel {
+    @apply bg-cold-charcoal border border-cold-gray;
+  }
+
+  .section-title {
+    @apply text-xs tracking-widest uppercase text-cold-smoke mb-2;
+  }
+
+  .page-hero {
+    @apply min-h-screen flex flex-col items-center justify-center text-center px-6;
+  }
+}
