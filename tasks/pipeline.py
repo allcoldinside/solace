@@ -39,7 +39,7 @@ async def run_pipeline(db: AsyncSession, tenant_id: str, target: str, target_typ
 
         entity_store = EntityStore(db)
         for e in entities:
-            await entity_store.upsert(tenant_id=tenant_id, name=e['name'], kind=e['kind'], confidence=e['confidence'])
+            await entity_store.upsert(tenant_id=tenant_id, case_id='', canonical_name=e['name'], entity_type=e['kind'], confidence_score=e['confidence'])
 
         await save_memory(db, tenant_id, report.report_id, report.executive_summary, {'graph': graph_info})
 

@@ -1,16 +1,28 @@
+.PHONY: dev worker beat test lint migrate migration compose-up compose-down
+
 dev:
 	uvicorn api.main:app --reload
+
 worker:
-	celery -A tasks.celery_app.celery_app worker -Q default,low -l info
-worker-high:
-	celery -A tasks.celery_app.celery_app worker -Q high,critical -l info
+	celery -A tasks.celery_app.celery_app worker -Q default,low,high,critical -l info
+
+beat:
+	celery -A tasks.celery_app.celery_app beat -l info
+
+test:
+	pytest -q
+
+lint:
+	ruff check .
+
 migration:
 	alembic revision --autogenerate -m "init"
+
 migrate:
 	alembic upgrade head
-prod-up:
-	docker compose -f docker-compose.prod.yml up -d --build
-prod-logs:
-	docker compose -f docker-compose.prod.yml logs -f
-test:
-	pytest
+
+compose-up:
+	docker compose up --build
+
+compose-down:
+	docker compose down
