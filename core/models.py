@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import JSON, Boolean, DateTime, Float, Index, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -12,7 +12,7 @@ class Tenant(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     tenant_id: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(255))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class User(Base):
@@ -24,7 +24,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(32), default='analyst')
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class Report(Base):
@@ -39,7 +39,7 @@ class Report(Base):
     confidence_score: Mapped[float] = mapped_column(Float)
     full_markdown: Mapped[str] = mapped_column(Text)
     payload: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class PanelSessionRecord(Base):
@@ -50,7 +50,7 @@ class PanelSessionRecord(Base):
     report_id: Mapped[str] = mapped_column(String(64), index=True)
     summary: Mapped[str] = mapped_column(Text, default='')
     transcript: Mapped[list] = mapped_column(JSON, default=list)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class Case(Base):
@@ -61,7 +61,7 @@ class Case(Base):
     title: Mapped[str] = mapped_column(String(255), index=True)
     description: Mapped[str] = mapped_column(Text, default='')
     status: Mapped[str] = mapped_column(String(32), default='open')
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class WatchRecord(Base):
@@ -71,7 +71,7 @@ class WatchRecord(Base):
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)
     target: Mapped[str] = mapped_column(String(255), index=True)
     target_type: Mapped[str] = mapped_column(String(64))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class AuditLog(Base):
@@ -81,7 +81,7 @@ class AuditLog(Base):
     action: Mapped[str] = mapped_column(String(128), index=True)
     actor: Mapped[str] = mapped_column(String(255))
     details: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class RevokedToken(Base):
@@ -89,7 +89,7 @@ class RevokedToken(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     jti: Mapped[str] = mapped_column(String(128), unique=True, index=True)
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class MemoryEntry(Base):
@@ -99,7 +99,7 @@ class MemoryEntry(Base):
     report_id: Mapped[str] = mapped_column(String(64), index=True)
     content: Mapped[str] = mapped_column(Text)
     meta: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class AutonomousTask(Base):
@@ -111,7 +111,7 @@ class AutonomousTask(Base):
     kind: Mapped[str] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(32), default='queued')
     payload: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class Entity(Base):
@@ -123,7 +123,7 @@ class Entity(Base):
     kind: Mapped[str] = mapped_column(String(64), index=True)
     confidence: Mapped[float] = mapped_column(Float, default=0.5)
     attributes: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class CollectionJob(Base):
@@ -133,7 +133,7 @@ class CollectionJob(Base):
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)
     target: Mapped[str] = mapped_column(String(255), index=True)
     status: Mapped[str] = mapped_column(String(32), default='done')
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 Index('ix_entities_tenant_name', Entity.tenant_id, Entity.name)

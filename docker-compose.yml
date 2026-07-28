@@ -2,9 +2,20 @@ version: '3.9'
 services:
   api:
     build: .
-    ports: ['8000:8000']
+    ports:
+      - "8000:8000"
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./solace.db
       - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-env-please-32-characters-min}
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+
   redis:
-    image: redis:7
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"

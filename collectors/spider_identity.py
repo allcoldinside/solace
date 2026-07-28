@@ -7,7 +7,7 @@ import asyncio
 import aiohttp
 
 from collectors.base import BaseCollector
-from core.schemas import CollectionResult, TargetType
+from core.schemas import CollectionResult, CollectorID, TargetType
 
 
 class SpiderIdentity(BaseCollector):
@@ -35,7 +35,7 @@ class SpiderIdentity(BaseCollector):
                         return
                     async with sem:
                         try:
-                            async with session.head(uri_check, timeout=10) as response:
+                            async with session.head(uri_check, timeout=aiohttp.ClientTimeout(total=10)) as response:
                                 if response.status < 400:
                                     items.append(
                                         self.build_item(
@@ -50,6 +50,4 @@ class SpiderIdentity(BaseCollector):
                             return
 
                 await asyncio.gather(*(check_site(entry) for entry in checks))
-        from core.schemas import CollectorID
-
         return CollectionResult(collector_id=CollectorID.SPIDER_9, items=items)

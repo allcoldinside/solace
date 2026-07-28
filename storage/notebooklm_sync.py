@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from reports.schema import ReportData
 
@@ -26,7 +26,7 @@ class NotebookLMSync:
         header = "| report_id | subject | date | confidence | key_finding_1 |"
         rows = [header, "|---|---|---|---|---|"]
         for report in self._synced_reports.values():
-            date_str = datetime.utcnow().strftime("%Y-%m-%d")
+            date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             first_finding = report.key_findings[0] if report.key_findings else ""
             rows.append(f"| {report.report_id} | {report.subject} | {date_str} | MEDIUM | {first_finding} |")
         return "\n".join(rows)
